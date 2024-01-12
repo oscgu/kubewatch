@@ -27,7 +27,7 @@ import (
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -72,15 +72,11 @@ func (s *SMTP) Init(c *config.Config) error {
 // Handle handles the notification.
 func (s *SMTP) Handle(e event.Event) {
 	send(s.cfg, e.Message())
-	logrus.Printf("Message successfully sent to %s at %s ", s.cfg.To, time.Now())
-}
-
-func formatEmail(e event.Event) (string, error) {
-	return e.Message(), nil
+	log.Printf("Message successfully sent to %s at %s ", s.cfg.To, time.Now())
 }
 
 func send(conf config.SMTP, msg string) {
 	if err := sendEmail(conf, msg); err != nil {
-		logrus.Error(err)
+		log.Err(err).Send()
 	}
 }

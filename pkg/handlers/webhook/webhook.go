@@ -20,17 +20,15 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"io/ioutil"
 	"os"
 
-	"bytes"
 	"encoding/json"
-	"net/http"
 	"time"
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
+	"github.com/rs/zerolog/log"
+	"github.com/valyala/fasthttp"
 )
 
 var webhookErrMsg = `
@@ -49,7 +47,8 @@ Command line flags will override environment variables
 // Webhook handler implements handler.Handler interface,
 // Notify event to Webhook channel
 type Webhook struct {
-	Url string
+	Url    string
+	Client *fasthttp.Client
 }
 
 // WebhookMessage for messages
@@ -81,21 +80,22 @@ func (m *Webhook) Init(c *config.Config) error {
 	}
 
 	m.Url = url
+	m.Client = &fasthttp.Client{}
 
 	if tlsSkip {
-		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		m.Client.TLSConfig.InsecureSkipVerify = true
 	} else {
 		if cert == "" {
-			logrus.Printf("No webhook cert is given")
+			log.Printf("No webhook cert is given")
 		} else {
-			caCert, err := ioutil.ReadFile(cert)
+			caCert, err := os.ReadFile(cert)
 			if err != nil {
-				logrus.Printf("%s\n", err)
+				log.Printf("%s\n", err)
 				return err
 			}
 			caCertPool := x509.NewCertPool()
 			caCertPool.AppendCertsFromPEM(caCert)
-			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{RootCAs: caCertPool}
+			m.Client.TLSConfig = &tls.Config{RootCAs: caCertPool}
 		}
 
 	}
@@ -107,13 +107,13 @@ func (m *Webhook) Init(c *config.Config) error {
 func (m *Webhook) Handle(e event.Event) {
 	webhookMessage := prepareWebhookMessage(e, m)
 
-	err := postMessage(m.Url, webhookMessage)
+	err := postMessage(m.Url, m.Client, webhookMessage)
 	if err != nil {
-		logrus.Printf("%s\n", err)
+		log.Printf("%s\n", err)
 		return
 	}
 
-	logrus.Printf("Message successfully sent to %s at %s ", m.Url, time.Now())
+	log.Printf("Message successfully sent to %s at %s ", m.Url, time.Now())
 }
 
 func checkMissingWebhookVars(s *Webhook) error {
@@ -137,23 +137,25 @@ func prepareWebhookMessage(e event.Event, m *Webhook) *WebhookMessage {
 	}
 }
 
-func postMessage(url string, webhookMessage *WebhookMessage) error {
+func postMessage(url string, client *fasthttp.Client, webhookMessage *WebhookMessage) error {
+	req := fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
+	req.SetRequestURI(url)
+
 	message, err := json.Marshal(webhookMessage)
 	if err != nil {
 		return err
 	}
+	req.SetBody(message)
+	req.Header.SetMethod("POST")
+	req.Header.SetContentType("application/json")
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(message))
-	if err != nil {
+	res := fasthttp.AcquireResponse()
+	if err := client.Do(req, res); err != nil {
 		return err
 	}
-	req.Header.Add("Content-Type", "application/json")
-
-	client := &http.Client{}
-	_, err = client.Do(req)
-	if err != nil {
-		return err
-	}
+	fasthttp.ReleaseRequest(req)
+	fasthttp.ReleaseResponse(res)
 
 	return nil
 }

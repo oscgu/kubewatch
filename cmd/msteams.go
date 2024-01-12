@@ -18,7 +18,7 @@ package cmd
 
 import (
 	"github.com/bitnami-labs/kubewatch/config"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +30,7 @@ var msteamsConfigCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		webhookURL, err := cmd.Flags().GetString("webhookurl")
@@ -39,11 +39,11 @@ var msteamsConfigCmd = &cobra.Command{
 				conf.Handler.MSTeams.WebhookURL = webhookURL
 			}
 		} else {
-			logrus.Fatal(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		if err = conf.Write(); err != nil {
-			logrus.Fatal(err)
+			log.Fatal().Err(err).Send()
 		}
 	},
 }

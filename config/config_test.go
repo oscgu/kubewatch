@@ -16,11 +16,9 @@ limitations under the License.
 
 package config
 
-import (
 //"io/ioutil"
 //"os"
 //"testing"
-)
 
 var configStr = `
 {

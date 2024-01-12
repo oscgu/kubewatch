@@ -18,7 +18,6 @@ package flock
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
 
 	"bytes"
@@ -28,6 +27,7 @@ import (
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
+	"github.com/rs/zerolog/log"
 )
 
 var flockColors = map[string]string{
@@ -92,11 +92,11 @@ func (f *Flock) Handle(e event.Event) {
 
 	err := postMessage(f.Url, flockMessage)
 	if err != nil {
-		logrus.Printf("%s\n", err)
+		log.Printf("%s\n", err)
 		return
 	}
 
-	logrus.Printf("Message successfully sent to channel %s at %s", f.Url, time.Now())
+	log.Printf("Message successfully sent to channel %s at %s", f.Url, time.Now())
 }
 
 func checkMissingFlockVars(s *Flock) error {

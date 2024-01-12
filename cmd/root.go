@@ -21,12 +21,14 @@ import (
 	"net/http"
 	"os"
 
+	_ "net/http/pprof"
+
 	"github.com/bitnami-labs/kubewatch/config"
 	c "github.com/bitnami-labs/kubewatch/pkg/client"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	_ "net/http/pprof"
 )
 
 var cfgFile string
@@ -54,7 +56,7 @@ supported webhooks:
 	Run: func(cmd *cobra.Command, args []string) {
 		config := &config.Config{}
 		if err := config.Load(); err != nil {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 		config.CheckMissingResourceEnvvars()
 		c.Run(config)
@@ -84,10 +86,10 @@ func init() {
 	if os.Getenv("ENABLE_PPROF") == "True" {
 		go func() {
 			pprofAddr := "localhost:6060"
-			logrus.Infof("Initializing pprof %s", pprofAddr)
+			log.Info().Msgf("Initializing pprof %s", pprofAddr)
 			err := http.ListenAndServe(pprofAddr, nil)
 			if err != nil {
-				logrus.Errorf("Failed to initialize pprof %s", err)
+				log.Error().Msgf("Failed to initialize pprof %s", err)
 			}
 		}()
 	}
@@ -96,23 +98,13 @@ func init() {
 func initLogger() {
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel != "" {
-		logrus.Printf("Custom log level: %s", logLevel)
-		parsedLevel, err := logrus.ParseLevel(logLevel)
+		log.Printf("Custom log level: %s", logLevel)
+		parsedLevel, err := zerolog.ParseLevel(logLevel)
 		if err == nil {
-			logrus.Printf("Setting custom log level to: %s", logLevel)
-			logrus.SetLevel(parsedLevel)
+			log.Printf("Setting custom log level to: %s", logLevel)
+			zerolog.SetGlobalLevel(parsedLevel)
 		} else {
-			logrus.Errorf("Illegal custom log level: %s. Ignoring custom log level", logLevel)
-		}
-	}
-	logFormatter := os.Getenv("LOG_FORMATTER")
-	if logFormatter != "" {
-		logrus.Printf("Custom log formatter: %s", logFormatter)
-		if logFormatter == "json" {
-			logrus.Printf("Setting custom log formatter to: %s", logFormatter)
-			logrus.SetFormatter(new(logrus.JSONFormatter))
-		} else {
-			logrus.Errorf("Illegal custom log formatter: %s. Ignoring custom log formatter", logFormatter)
+			log.Error().Msgf("Illegal custom log level: %s. Ignoring custom log level", logLevel)
 		}
 	}
 }

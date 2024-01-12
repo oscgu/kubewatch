@@ -18,7 +18,7 @@ package cmd
 
 import (
 	"github.com/bitnami-labs/kubewatch/config"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +32,7 @@ manage resources to be watched`,
 
 		// warn for too few arguments
 		if len(args) < 2 {
-			logrus.Warn("Too few arguments to Command \"resource\".\nMinimum 2 arguments required: subcommand, resource flags")
+			log.Warn().Msg("Too few arguments to Command \"resource\".\nMinimum 2 arguments required: subcommand, resource flags")
 		}
 		// display help
 		cmd.Help()
@@ -48,7 +48,7 @@ adds specific resources to be watched`,
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 
 		// add resource to config
@@ -65,7 +65,7 @@ remove specific resources being watched`,
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 
 		// remove resource from config
@@ -162,19 +162,19 @@ func configureResource(operation string, cmd *cobra.Command, conf *config.Config
 				switch operation {
 				case "add":
 					*flag.resourceToWatch = true
-					logrus.Infof("resource %s configured", flag.resourceStr)
+					log.Info().Msgf("resource %s configured", flag.resourceStr)
 				case "remove":
 					*flag.resourceToWatch = false
-					logrus.Infof("resource %s removed", flag.resourceStr)
+					log.Info().Msgf("resource %s removed", flag.resourceStr)
 				}
 			}
 		} else {
-			logrus.Fatal(flag.resourceStr, err)
+			log.Fatal().Err(err).Str("resourceStr", flag.resourceStr)
 		}
 	}
 
 	if err := conf.Write(); err != nil {
-		logrus.Fatal(err)
+		log.Fatal().Err(err)
 	}
 }
 

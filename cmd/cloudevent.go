@@ -18,7 +18,7 @@ package cmd
 
 import (
 	"github.com/bitnami-labs/kubewatch/config"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,7 @@ var cloudEventConfigCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 
 		url, err := cmd.Flags().GetString("url")
@@ -38,11 +38,11 @@ var cloudEventConfigCmd = &cobra.Command{
 				conf.Handler.CloudEvent.Url = url
 			}
 		} else {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 
 		if err = conf.Write(); err != nil {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 	},
 }

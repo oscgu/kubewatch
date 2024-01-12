@@ -15,6 +15,7 @@ package event
 
 import (
 	"fmt"
+
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -32,12 +33,6 @@ type Event struct {
 	Name       string
 	Obj        runtime.Object
 	OldObj     runtime.Object
-}
-
-var m = map[string]string{
-	"created": "Normal",
-	"deleted": "Danger",
-	"updated": "Warning",
 }
 
 // Message returns event message in standard format.

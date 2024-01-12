@@ -1,5 +1,5 @@
-FROM golang AS builder
-MAINTAINER "Cuong Manh Le <cuong.manhle.vn@gmail.com>"
+FROM golang:1.21 AS builder
+# deprecated label: MAINTAINER "Cuong Manh Le <cuong.manhle.vn@gmail.com>"
 
 RUN apt-get update && \
     dpkg --add-architecture arm64 &&\

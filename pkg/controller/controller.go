@@ -30,7 +30,8 @@ import (
 	"github.com/bitnami-labs/kubewatch/pkg/event"
 	"github.com/bitnami-labs/kubewatch/pkg/handlers"
 	"github.com/bitnami-labs/kubewatch/pkg/utils"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	apps_v1 "k8s.io/api/apps/v1"
 	autoscaling_v1 "k8s.io/api/autoscaling/v1"
@@ -74,7 +75,7 @@ type Event struct {
 
 // Controller object
 type Controller struct {
-	logger       *logrus.Entry
+	logger       *zerolog.Logger
 	clientset    kubernetes.Interface
 	queue        workqueue.RateLimitingInterface
 	informer     cache.SharedIndexInformer
@@ -562,9 +563,9 @@ func newResourceController(client kubernetes.Interface, eventHandler handlers.Ha
 			newEvent.apiVersion = apiVersion
 			newEvent.obj, ok = obj.(runtime.Object)
 			if !ok {
-				logrus.WithField("pkg", "kubewatch-"+resourceType).Errorf("cannot convert to runtime.Object for add on %v", obj)
+				log.Error().Str("pkg", "kubewatch-"+resourceType).Msgf("cannot convert to runtime.Object for add on %v", obj)
 			}
-			logrus.WithField("pkg", "kubewatch-"+resourceType).Infof("Processing add to %v: %s", resourceType, newEvent.key)
+			log.Info().Str("pkg", "kubewatch-"+resourceType).Msgf("Processing add to %v: %s", resourceType, newEvent.key)
 			if err == nil {
 				queue.Add(newEvent)
 			}
@@ -578,13 +579,13 @@ func newResourceController(client kubernetes.Interface, eventHandler handlers.Ha
 			newEvent.apiVersion = apiVersion
 			newEvent.obj, ok = new.(runtime.Object)
 			if !ok {
-				logrus.WithField("pkg", "kubewatch-"+resourceType).Errorf("cannot convert to runtime.Object for update on %v", new)
+				log.Error().Str("pkg", "kubewatch-"+resourceType).Msgf("cannot convert to runtime.Object for update on %v", new)
 			}
 			newEvent.oldObj, ok = old.(runtime.Object)
 			if !ok {
-				logrus.WithField("pkg", "kubewatch-"+resourceType).Errorf("cannot convert old to runtime.Object for update on %v", old)
+				log.Error().Str("pkg", "kubewatch-"+resourceType).Msgf("cannot convert old to runtime.Object for update on %v", old)
 			}
-			logrus.WithField("pkg", "kubewatch-"+resourceType).Infof("Processing update to %v: %s", resourceType, newEvent.key)
+			log.Info().Str("pkg", "kubewatch-"+resourceType).Msgf("Processing update to %v: %s", resourceType, newEvent.key)
 			if err == nil {
 				queue.Add(newEvent)
 			}
@@ -598,17 +599,19 @@ func newResourceController(client kubernetes.Interface, eventHandler handlers.Ha
 			newEvent.apiVersion = apiVersion
 			newEvent.obj, ok = obj.(runtime.Object)
 			if !ok {
-				logrus.WithField("pkg", "kubewatch-"+resourceType).Errorf("cannot convert to runtime.Object for delete on %v", obj)
+				log.Error().Str("pkg", "kubewatch-"+resourceType).Msgf("cannot convert to runtime.Object for delete on %v", obj)
 			}
-			logrus.WithField("pkg", "kubewatch-"+resourceType).Infof("Processing delete to %v: %s", resourceType, newEvent.key)
+			log.Info().Str("pkg", "kubewatch-"+resourceType).Msgf("Processing delete to %v: %s", resourceType, newEvent.key)
 			if err == nil {
 				queue.Add(newEvent)
 			}
 		},
 	})
 
+	logger := zerolog.New(os.Stderr).With().Str("pkg", "kubewatch-"+resourceType).Logger()
+
 	return &Controller{
-		logger:       logrus.WithField("pkg", "kubewatch-"+resourceType),
+		logger:       &logger,
 		clientset:    client,
 		informer:     informer,
 		queue:        queue,
@@ -621,7 +624,7 @@ func (c *Controller) Run(stopCh <-chan struct{}) {
 	defer utilruntime.HandleCrash()
 	defer c.queue.ShutDown()
 
-	c.logger.Info("Starting kubewatch controller")
+	c.logger.Info().Msg("Starting kubewatch controller")
 	serverStartTime = time.Now().Local()
 
 	go c.informer.Run(stopCh)
@@ -631,7 +634,7 @@ func (c *Controller) Run(stopCh <-chan struct{}) {
 		return
 	}
 
-	c.logger.Info("Kubewatch controller synced and ready")
+	c.logger.Info().Msg("Kubewatch controller synced and ready")
 
 	wait.Until(c.runWorker, time.Second, stopCh)
 }
@@ -664,11 +667,11 @@ func (c *Controller) processNextItem() bool {
 		// No error, reset the ratelimit counters
 		c.queue.Forget(newEvent)
 	} else if c.queue.NumRequeues(newEvent) < maxRetries {
-		c.logger.Errorf("Error processing %s (will retry): %v", newEvent.(Event).key, err)
+		c.logger.Error().Msgf("Error processing %s (will retry): %v", newEvent.(Event).key, err)
 		c.queue.AddRateLimited(newEvent)
 	} else {
 		// err != nil and too many retries
-		c.logger.Errorf("Error processing %s (giving up): %v", newEvent.(Event).key, err)
+		c.logger.Error().Msgf("Error processing %s (giving up): %v", newEvent.(Event).key, err)
 		c.queue.Forget(newEvent)
 		utilruntime.HandleError(err)
 	}

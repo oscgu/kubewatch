@@ -30,7 +30,7 @@ import (
 	"github.com/bitnami-labs/kubewatch/pkg/handlers/slackwebhook"
 	"github.com/bitnami-labs/kubewatch/pkg/handlers/smtp"
 	"github.com/bitnami-labs/kubewatch/pkg/handlers/webhook"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 // Run runs the event loop processing with given handler
@@ -69,7 +69,7 @@ func ParseEventHandler(conf *config.Config) handlers.Handler {
 		eventHandler = new(handlers.Default)
 	}
 	if err := eventHandler.Init(conf); err != nil {
-		logrus.Fatal(err)
+		log.Fatal().Err(err)
 	}
 	return eventHandler
 }

@@ -18,7 +18,6 @@ package mattermost
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
 
 	"bytes"
@@ -28,6 +27,7 @@ import (
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
+	"github.com/rs/zerolog/log"
 )
 
 var mattermostColors = map[string]string{
@@ -104,11 +104,11 @@ func (m *Mattermost) Handle(e event.Event) {
 
 	err := postMessage(m.Url, mattermostMessage)
 	if err != nil {
-		logrus.Printf("%s\n", err)
+		log.Printf("%s\n", err)
 		return
 	}
 
-	logrus.Printf("Message successfully sent to channel %s at %s", m.Channel, time.Now())
+	log.Printf("Message successfully sent to channel %s at %s", m.Channel, time.Now())
 }
 
 func checkMissingMattermostVars(s *Mattermost) error {

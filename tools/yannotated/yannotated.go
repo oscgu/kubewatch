@@ -4,7 +4,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -13,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/fatih/structtag"
+	"github.com/rs/zerolog/log"
 	"github.com/segmentio/textio"
 )
 
@@ -191,6 +191,6 @@ func main() {
 	flag.Parse()
 
 	if err := mainE(flags); err != nil {
-		logrus.Fatal(err)
+		log.Fatal().Err(err)
 	}
 }

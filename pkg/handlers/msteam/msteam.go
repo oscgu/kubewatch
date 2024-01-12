@@ -20,13 +20,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
+	"github.com/rs/zerolog/log"
 )
 
 var msteamsErrMsg = `
@@ -98,7 +98,7 @@ func sendCard(ms *MSTeams, card *TeamsMessageCard) (*http.Response, error) {
 			ms.TeamsWebhookURL, err)
 	}
 	if res.StatusCode != http.StatusOK {
-		resMessage, err := ioutil.ReadAll(res.Body)
+		resMessage, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Failed reading Teams http response: %v", err)
 		}
@@ -145,9 +145,9 @@ func (ms *MSTeams) Handle(e event.Event) {
 	card.Sections = append(card.Sections, s)
 
 	if _, err := sendCard(ms, card); err != nil {
-		logrus.Printf("%s\n", err)
+		log.Printf("%s\n", err)
 		return
 	}
 
-	logrus.Printf("Message successfully sent to MS Teams")
+	log.Printf("Message successfully sent to MS Teams")
 }

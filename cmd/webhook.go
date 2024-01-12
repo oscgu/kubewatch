@@ -20,7 +20,7 @@ import (
 	"strconv"
 
 	"github.com/bitnami-labs/kubewatch/config"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +32,7 @@ var webhookConfigCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 
 		url, err := cmd.Flags().GetString("url")
@@ -41,7 +41,7 @@ var webhookConfigCmd = &cobra.Command{
 				conf.Handler.Webhook.Url = url
 			}
 		} else {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 
 		cert, err := cmd.Flags().GetString("cert")
@@ -50,7 +50,7 @@ var webhookConfigCmd = &cobra.Command{
 				conf.Handler.Webhook.Cert = cert
 			}
 		} else {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 
 		tlsSkip, err := cmd.Flags().GetString("tlsskip")
@@ -58,18 +58,18 @@ var webhookConfigCmd = &cobra.Command{
 			if len(tlsSkip) > 0 {
 				skip, err := strconv.ParseBool(tlsSkip)
 				if err != nil {
-					logrus.Fatal(err)
+					log.Fatal().Err(err)
 				}
 				conf.Handler.Webhook.TlsSkip = skip
 			} else {
 				conf.Handler.Webhook.TlsSkip = false
 			}
 		} else {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 
 		if err = conf.Write(); err != nil {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 	},
 }

@@ -18,7 +18,6 @@ package lark
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
 
 	"bytes"
@@ -28,6 +27,7 @@ import (
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
+	"github.com/rs/zerolog/log"
 )
 
 var webhookErrMsg = `
@@ -74,10 +74,10 @@ func (m *Webhook) Handle(e event.Event) {
 
 	err := postMessage(m.Url, webhookMessage)
 	if err != nil {
-		logrus.Printf("%s\n", err)
+		log.Printf("%s\n", err)
 		return
 	}
-	logrus.Printf("Message successfully sent to lark webhook: %s at %s ", m.Url, time.Now())
+	log.Printf("Message successfully sent to lark webhook: %s at %s ", m.Url, time.Now())
 }
 
 func checkMissingWebhookVars(s *Webhook) error {

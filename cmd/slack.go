@@ -18,7 +18,7 @@ package cmd
 
 import (
 	"github.com/bitnami-labs/kubewatch/config"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +30,7 @@ var slackConfigCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 
 		token, err := cmd.Flags().GetString("token")
@@ -39,7 +39,7 @@ var slackConfigCmd = &cobra.Command{
 				conf.Handler.Slack.Token = token
 			}
 		} else {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 		channel, err := cmd.Flags().GetString("channel")
 		if err == nil {
@@ -47,7 +47,7 @@ var slackConfigCmd = &cobra.Command{
 				conf.Handler.Slack.Channel = channel
 			}
 		} else {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 		title, err := cmd.Flags().GetString("title")
 		if err == nil {
@@ -57,7 +57,7 @@ var slackConfigCmd = &cobra.Command{
 		}
 
 		if err = conf.Write(); err != nil {
-			logrus.Fatal(err)
+			log.Fatal().Err(err)
 		}
 	},
 }

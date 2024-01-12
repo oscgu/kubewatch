@@ -18,7 +18,6 @@ package cloudevent
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
 
 	"bytes"
@@ -28,6 +27,7 @@ import (
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
+	"github.com/rs/zerolog/log"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -95,11 +95,11 @@ func (m *CloudEvent) Handle(e event.Event) {
 
 	err := m.postMessage(message)
 	if err != nil {
-		logrus.Printf("%s\n", err)
+		log.Printf("%s\n", err)
 		return
 	}
 
-	logrus.Printf("Message successfully sent to %s at %s ", m.Url, time.Now())
+	log.Printf("Message successfully sent to %s at %s ", m.Url, time.Now())
 }
 
 func (m *CloudEvent) prepareMessage(e event.Event) *CloudEventMessage {

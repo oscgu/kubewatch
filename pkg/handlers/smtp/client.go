@@ -24,6 +24,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"math/rand"
 	"mime"
@@ -38,8 +39,7 @@ import (
 	"time"
 
 	"github.com/bitnami-labs/kubewatch/config"
-	"github.com/mkmik/multierror"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 func sendEmail(conf config.SMTP, msg string) error {
@@ -85,7 +85,7 @@ func sendEmail(conf config.SMTP, msg string) error {
 	defer func() {
 		// Try to clean up after ourselves but don't log anything if something has failed.
 		if err := c.Quit(); success && err != nil {
-			logrus.Warnf("failed to close SMTP connection: %v", err)
+			log.Warn().Msgf("failed to close SMTP connection: %v", err)
 		}
 	}()
 
@@ -219,7 +219,7 @@ func sendEmail(conf config.SMTP, msg string) error {
 		return fmt.Errorf("write body buffer: %w", err)
 	}
 
-	logrus.Printf("sending via %s:%s, to: %q, from: %q : %s ", host, port, conf.To, conf.From, msg)
+	log.Printf("sending via %s:%s, to: %q, from: %q : %s ", host, port, conf.To, conf.From, msg)
 	return nil
 }
 
@@ -228,7 +228,7 @@ func auth(conf config.SMTPAuth, host, mechs string) (smtp.Auth, error) {
 
 	// If no username is set, keep going without authentication.
 	if username == "" {
-		logrus.Debugf("smtp_auth_username is not configured. Attempting to send email without authenticating")
+		log.Debug().Msgf("smtp_auth_username is not configured. Attempting to send email without authenticating")
 		return nil, nil
 	}
 
@@ -264,7 +264,7 @@ func auth(conf config.SMTPAuth, host, mechs string) (smtp.Auth, error) {
 	if len(errs) == 0 {
 		errs = append(errs, fmt.Errorf("unknown auth mechanism: %q", mechs))
 	}
-	return nil, multierror.Join(errs)
+	return nil, errors.Join(errs...)
 }
 
 type loginAuth struct {

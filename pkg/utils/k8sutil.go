@@ -3,14 +3,14 @@ package utils
 import (
 	"os"
 
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	apps_v1 "k8s.io/api/apps/v1"
 	batch_v1 "k8s.io/api/batch/v1"
 	api_v1 "k8s.io/api/core/v1"
+	events_v1 "k8s.io/api/events/v1"
 	ext_v1beta1 "k8s.io/api/extensions/v1beta1"
 	networking_v1 "k8s.io/api/networking/v1"
 	rbac_v1 "k8s.io/api/rbac/v1"
-	events_v1 "k8s.io/api/events/v1"
 	rbac_v1beta1 "k8s.io/api/rbac/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -22,12 +22,12 @@ import (
 func GetClient() kubernetes.Interface {
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		logrus.Fatalf("Can not get kubernetes config: %v", err)
+		log.Fatal().Msgf("Can not get kubernetes config: %v", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		logrus.Fatalf("Can not create kubernetes client: %v", err)
+		log.Fatal().Msgf("Can not create kubernetes client: %v", err)
 	}
 
 	return clientset
@@ -45,12 +45,12 @@ func buildOutOfClusterConfig() (*rest.Config, error) {
 func GetClientOutOfCluster() kubernetes.Interface {
 	config, err := buildOutOfClusterConfig()
 	if err != nil {
-		logrus.Fatalf("Can not get kubernetes config: %v", err)
+		log.Fatal().Msgf("Can not get kubernetes config: %v", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		logrus.Fatalf("Can not get kubernetes config: %v", err)
+		log.Fatal().Msgf("Can not get kubernetes config: %v", err)
 	}
 
 	return clientset
