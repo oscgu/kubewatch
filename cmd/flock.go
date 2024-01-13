@@ -30,7 +30,7 @@ var flockConfigCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		url, err := cmd.Flags().GetString("url")
@@ -39,11 +39,11 @@ var flockConfigCmd = &cobra.Command{
 				conf.Handler.Flock.Url = url
 			}
 		} else {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		if err = conf.Write(); err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 	},
 }

@@ -56,7 +56,7 @@ supported webhooks:
 	Run: func(cmd *cobra.Command, args []string) {
 		config := &config.Config{}
 		if err := config.Load(); err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 		config.CheckMissingResourceEnvvars()
 		c.Run(config)

@@ -69,7 +69,7 @@ func ParseEventHandler(conf *config.Config) handlers.Handler {
 		eventHandler = new(handlers.Default)
 	}
 	if err := eventHandler.Init(conf); err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Send()
 	}
 	return eventHandler
 }

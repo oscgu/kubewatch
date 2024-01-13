@@ -48,7 +48,7 @@ adds specific resources to be watched`,
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		// add resource to config
@@ -65,7 +65,7 @@ remove specific resources being watched`,
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		// remove resource from config
@@ -169,12 +169,12 @@ func configureResource(operation string, cmd *cobra.Command, conf *config.Config
 				}
 			}
 		} else {
-			log.Fatal().Err(err).Str("resourceStr", flag.resourceStr)
+			log.Fatal().Err(err).Str("resourceStr", flag.resourceStr).Send()
 		}
 	}
 
 	if err := conf.Write(); err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Send()
 	}
 }
 

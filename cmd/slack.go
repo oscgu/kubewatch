@@ -30,7 +30,7 @@ var slackConfigCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		token, err := cmd.Flags().GetString("token")
@@ -39,7 +39,7 @@ var slackConfigCmd = &cobra.Command{
 				conf.Handler.Slack.Token = token
 			}
 		} else {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 		channel, err := cmd.Flags().GetString("channel")
 		if err == nil {
@@ -47,7 +47,7 @@ var slackConfigCmd = &cobra.Command{
 				conf.Handler.Slack.Channel = channel
 			}
 		} else {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 		title, err := cmd.Flags().GetString("title")
 		if err == nil {
@@ -57,7 +57,7 @@ var slackConfigCmd = &cobra.Command{
 		}
 
 		if err = conf.Write(); err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 	},
 }

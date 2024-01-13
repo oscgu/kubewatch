@@ -30,7 +30,7 @@ var slackwebhookConfigCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		channel, err := cmd.Flags().GetString("channel")
@@ -39,7 +39,7 @@ var slackwebhookConfigCmd = &cobra.Command{
 				conf.Handler.SlackWebhook.Channel = channel
 			}
 		} else {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		username, err := cmd.Flags().GetString("username")
@@ -48,7 +48,7 @@ var slackwebhookConfigCmd = &cobra.Command{
 				conf.Handler.SlackWebhook.Username = username
 			}
 		} else {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		emoji, err := cmd.Flags().GetString("emoji")
@@ -64,11 +64,11 @@ var slackwebhookConfigCmd = &cobra.Command{
 				conf.Handler.SlackWebhook.Slackwebhookurl = slackwebhookurl
 			}
 		} else {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		if err = conf.Write(); err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 	},
 }

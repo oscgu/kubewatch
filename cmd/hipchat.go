@@ -30,7 +30,7 @@ var hipchatConfigCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		conf, err := config.New()
 		if err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		token, err := cmd.Flags().GetString("token")
@@ -39,7 +39,7 @@ var hipchatConfigCmd = &cobra.Command{
 				conf.Handler.Hipchat.Token = token
 			}
 		} else {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 		room, err := cmd.Flags().GetString("room")
 		if err == nil {
@@ -47,11 +47,11 @@ var hipchatConfigCmd = &cobra.Command{
 				conf.Handler.Hipchat.Room = room
 			}
 		} else {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 
 		if err = conf.Write(); err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Send()
 		}
 	},
 }

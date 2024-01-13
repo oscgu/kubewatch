@@ -191,6 +191,6 @@ func main() {
 	flag.Parse()
 
 	if err := mainE(flags); err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Send()
 	}
 }
