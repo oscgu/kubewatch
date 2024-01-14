@@ -107,6 +107,18 @@ func initLogger() {
 			log.Error().Msgf("Illegal custom log level: %s. Ignoring custom log level", logLevel)
 		}
 	}
+	// default format is json, hence the change to a console writer
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	logFormatter := os.Getenv("LOG_FORMATTER")
+	if logFormatter != "" {
+		log.Printf("Custom log formatter: %s", logFormatter)
+		if logFormatter == "json" {
+			log.Printf("Setting custom log formatter to: %s", logFormatter)
+			log.Logger = log.Output(os.Stderr)
+		} else {
+			log.Error().Msgf("Illegal custom log formatter: %s. Ignoring log formatter", logFormatter)
+		}
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.

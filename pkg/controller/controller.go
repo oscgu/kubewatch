@@ -608,7 +608,7 @@ func newResourceController(client kubernetes.Interface, eventHandler handlers.Ha
 		},
 	})
 
-	logger := zerolog.New(os.Stderr).With().Str("pkg", "kubewatch-"+resourceType).Logger()
+	logger := zerolog.New(os.Stderr).With().Timestamp().Str("pkg", "kubewatch-"+resourceType).Logger()
 
 	return &Controller{
 		logger:       &logger,
