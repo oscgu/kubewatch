@@ -140,6 +140,10 @@ func prepareWebhookMessage(e event.Event, m *Webhook) *WebhookMessage {
 func postMessage(url string, client *fasthttp.Client, webhookMessage *WebhookMessage) error {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
+
+	res := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(res)
+
 	req.SetRequestURI(url)
 
 	message, err := json.Marshal(webhookMessage)
@@ -150,12 +154,8 @@ func postMessage(url string, client *fasthttp.Client, webhookMessage *WebhookMes
 	req.Header.SetMethod("POST")
 	req.Header.SetContentType("application/json")
 
-	res := fasthttp.AcquireResponse()
 	if err := client.Do(req, res); err != nil {
 		return err
 	}
-	fasthttp.ReleaseRequest(req)
-	fasthttp.ReleaseResponse(res)
-
 	return nil
 }
