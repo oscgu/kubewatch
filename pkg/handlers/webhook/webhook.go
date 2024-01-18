@@ -83,7 +83,7 @@ func (m *Webhook) Init(c *config.Config) error {
 	m.Client = &fasthttp.Client{}
 
 	if tlsSkip {
-		m.Client.TLSConfig.InsecureSkipVerify = true
+		m.Client.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	} else {
 		if cert == "" {
 			log.Printf("No webhook cert is given")
