@@ -108,7 +108,7 @@ func initLogger() {
 		}
 	}
 	// default format is json, hence the change to a console writer
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, NoColor: true})
 	logFormatter := os.Getenv("LOG_FORMATTER")
 	if logFormatter != "" {
 		log.Printf("Custom log formatter: %s", logFormatter)
