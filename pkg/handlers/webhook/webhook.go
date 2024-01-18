@@ -113,7 +113,7 @@ func (m *Webhook) Handle(e event.Event) {
 		return
 	}
 
-	log.Printf("Message successfully sent to %s at %s ", m.Url, time.Now())
+	log.Printf("Message successfully sent to %s", m.Url)
 }
 
 func checkMissingWebhookVars(s *Webhook) error {

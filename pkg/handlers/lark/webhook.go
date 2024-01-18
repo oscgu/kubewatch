@@ -23,7 +23,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
@@ -77,7 +76,7 @@ func (m *Webhook) Handle(e event.Event) {
 		log.Printf("%s\n", err)
 		return
 	}
-	log.Printf("Message successfully sent to lark webhook: %s at %s ", m.Url, time.Now())
+	log.Printf("Message successfully sent to lark webhook: %s", m.Url)
 }
 
 func checkMissingWebhookVars(s *Webhook) error {

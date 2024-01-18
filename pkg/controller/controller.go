@@ -608,7 +608,7 @@ func newResourceController(client kubernetes.Interface, eventHandler handlers.Ha
 		},
 	})
 
-	logger := zerolog.New(os.Stderr).With().Timestamp().Str("pkg", "kubewatch-"+resourceType).Logger()
+	logger := log.With().Str("pkg", "kubewatch-"+resourceType).Logger()
 
 	return &Controller{
 		logger:       &logger,
@@ -681,8 +681,6 @@ func (c *Controller) processNextItem() bool {
 
 /* TODOs
 - Enhance event creation using client-side cacheing machanisms - pending
-- Enhance the processItem to classify events - done
-- Send alerts correspoding to events - done
 */
 
 func (c *Controller) processItem(newEvent Event) error {

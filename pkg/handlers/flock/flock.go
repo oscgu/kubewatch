@@ -23,7 +23,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
@@ -96,7 +95,7 @@ func (f *Flock) Handle(e event.Event) {
 		return
 	}
 
-	log.Printf("Message successfully sent to channel %s at %s", f.Url, time.Now())
+	log.Printf("Message successfully sent to channel %s", f.Url)
 }
 
 func checkMissingFlockVars(s *Flock) error {

@@ -19,15 +19,6 @@ package handlers
 import (
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
-	"github.com/bitnami-labs/kubewatch/pkg/handlers/flock"
-	"github.com/bitnami-labs/kubewatch/pkg/handlers/hipchat"
-	"github.com/bitnami-labs/kubewatch/pkg/handlers/lark"
-	"github.com/bitnami-labs/kubewatch/pkg/handlers/mattermost"
-	"github.com/bitnami-labs/kubewatch/pkg/handlers/msteam"
-	"github.com/bitnami-labs/kubewatch/pkg/handlers/slack"
-	"github.com/bitnami-labs/kubewatch/pkg/handlers/slackwebhook"
-	"github.com/bitnami-labs/kubewatch/pkg/handlers/smtp"
-	"github.com/bitnami-labs/kubewatch/pkg/handlers/webhook"
 )
 
 // Handler is implemented by any handler.
@@ -35,20 +26,6 @@ import (
 type Handler interface {
 	Init(c *config.Config) error
 	Handle(e event.Event)
-}
-
-// Map maps each event handler function to a name for easily lookup
-var Map = map[string]interface{}{
-	"default":      &Default{},
-	"slack":        &slack.Slack{},
-	"slackwebhook": &slackwebhook.SlackWebhook{},
-	"hipchat":      &hipchat.Hipchat{},
-	"mattermost":   &mattermost.Mattermost{},
-	"flock":        &flock.Flock{},
-	"webhook":      &webhook.Webhook{},
-	"ms-teams":     &msteam.MSTeams{},
-	"smtp":         &smtp.SMTP{},
-	"lark":         &lark.Webhook{},
 }
 
 // Default handler implements Handler interface,

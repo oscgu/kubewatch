@@ -107,14 +107,12 @@ func initLogger() {
 			log.Error().Msgf("Illegal custom log level: %s. Ignoring custom log level", logLevel)
 		}
 	}
-	// default format is json, hence the change to a console writer
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, NoColor: true})
 	logFormatter := os.Getenv("LOG_FORMATTER")
 	if logFormatter != "" {
 		log.Printf("Custom log formatter: %s", logFormatter)
-		if logFormatter == "json" {
+		if logFormatter == "console" {
+			log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, NoColor: true, TimeFormat: "2006-01-02T15:04:05.999Z07:00"})
 			log.Printf("Setting custom log formatter to: %s", logFormatter)
-			log.Logger = log.Output(os.Stderr)
 		} else {
 			log.Error().Msgf("Illegal custom log formatter: %s. Ignoring log formatter", logFormatter)
 		}

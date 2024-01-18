@@ -40,7 +40,6 @@ package slackwebhook
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/slack-go/slack"
@@ -120,7 +119,7 @@ func (m *SlackWebhook) Handle(e event.Event) {
 		return
 	}
 
-	log.Printf("Message successfully sent to %s at %s. Message: %s", m.Slackwebhookurl, time.Now(), webhookMessage.Text)
+	log.Printf("Message successfully sent to %s. Message: %s", m.Slackwebhookurl, webhookMessage.Text)
 }
 
 func checkMissingWebhookVars(s *SlackWebhook) error {

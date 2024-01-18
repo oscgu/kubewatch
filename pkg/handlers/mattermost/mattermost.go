@@ -23,7 +23,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
@@ -108,7 +107,7 @@ func (m *Mattermost) Handle(e event.Event) {
 		return
 	}
 
-	log.Printf("Message successfully sent to channel %s at %s", m.Channel, time.Now())
+	log.Printf("Message successfully sent to channel %s", m.Channel)
 }
 
 func checkMissingMattermostVars(s *Mattermost) error {

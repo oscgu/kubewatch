@@ -19,15 +19,15 @@ package cloudevent
 import (
 	"fmt"
 	"os"
+	"sync/atomic"
 
-	"bytes"
 	"encoding/json"
-	"net/http"
 	"time"
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
 	"github.com/rs/zerolog/log"
+	"github.com/valyala/fasthttp"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -48,7 +48,8 @@ Command line flags will override environment variables
 type CloudEvent struct {
 	Url       string
 	StartTime uint64
-	Counter   uint64
+	Counter   atomic.Uint64
+	Client    *fasthttp.Client
 }
 
 type CloudEventMessage struct {
@@ -76,7 +77,8 @@ type CloudEventMessageData struct {
 func (m *CloudEvent) Init(c *config.Config) error {
 	m.Url = c.Handler.CloudEvent.Url
 	m.StartTime = uint64(time.Now().Unix())
-	m.Counter = 0
+	m.Counter.Store(0)
+	m.Client = &fasthttp.Client{}
 
 	if m.Url == "" {
 		m.Url = os.Getenv("KW_CLOUDEVENT_URL")
@@ -90,7 +92,7 @@ func (m *CloudEvent) Init(c *config.Config) error {
 }
 
 func (m *CloudEvent) Handle(e event.Event) {
-	m.Counter++ // TODO: do we have to worry about threadsafety here?
+	m.Counter.Add(1)
 	message := m.prepareMessage(e)
 
 	err := m.postMessage(message)
@@ -99,7 +101,7 @@ func (m *CloudEvent) Handle(e event.Event) {
 		return
 	}
 
-	log.Printf("Message successfully sent to %s at %s ", m.Url, time.Now())
+	log.Printf("Message successfully sent to %s", m.Url)
 }
 
 func (m *CloudEvent) prepareMessage(e event.Event) *CloudEventMessage {
@@ -107,7 +109,7 @@ func (m *CloudEvent) prepareMessage(e event.Event) *CloudEventMessage {
 		SpecVersion:     "1.0",
 		Type:            "KUBERNETES_TOPOLOGY_CHANGE",
 		Source:          "https://github.com/aantn/kubewatch",
-		ID:              fmt.Sprintf("%v-%v", m.StartTime, m.Counter),
+		ID:              fmt.Sprintf("%v-%v", m.StartTime, m.Counter.Load()),
 		Time:            time.Now(), // TODO: verify that time format is correct - note that this is the time of sending not time of event
 		DataContentType: "application/json",
 		Data: CloudEventMessageData{
@@ -141,18 +143,20 @@ func (m *CloudEvent) postMessage(webhookMessage *CloudEventMessage) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", m.Url, bytes.NewBuffer(message))
-	if err != nil {
-		return err
-	}
-	req.Header.Add("Content-Type", "application/json")
+	req := fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
+	req.SetRequestURI(m.Url)
+	req.SetBody(message)
+	req.Header.SetMethod("POST")
+	req.Header.SetContentType("application/json")
+
+	res := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(res)
+
+	if err := m.Client.Do(req, res); err != nil {
 		return err
 	}
-	defer resp.Body.Close()
 
 	return nil
 }
