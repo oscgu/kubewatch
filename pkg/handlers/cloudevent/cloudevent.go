@@ -17,11 +17,11 @@ limitations under the License.
 package cloudevent
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"sync/atomic"
 
-	"encoding/json"
 	"time"
 
 	"github.com/bitnami-labs/kubewatch/config"
@@ -58,7 +58,7 @@ type CloudEventMessage struct {
 	Source          string                `json:"source"`
 	Subject         string                `json:"subject"`
 	ID              string                `json:"id"`
-	Time            time.Time             `json:"time"`
+	Time            string                `json:"time"`
 	DataContentType string                `json:"datacontenttype"`
 	Data            CloudEventMessageData `json:"data"`
 }
@@ -110,7 +110,7 @@ func (m *CloudEvent) prepareMessage(e event.Event) *CloudEventMessage {
 		Type:            "KUBERNETES_TOPOLOGY_CHANGE",
 		Source:          "https://github.com/aantn/kubewatch",
 		ID:              fmt.Sprintf("%v-%v", m.StartTime, m.Counter.Load()),
-		Time:            time.Now(), // TODO: verify that time format is correct - note that this is the time of sending not time of event
+		Time:            time.Now().Format(time.RFC3339), // https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#time
 		DataContentType: "application/json",
 		Data: CloudEventMessageData{
 			Operation:   m.formatReason(e),
