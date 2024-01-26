@@ -15,11 +15,11 @@ A config object is used to creating new client.
 The controller initializes using the config object by reading the `.kubewatch.yaml` or command line arguments.
 If the parameters are not fully mentioned, the config falls back to read a set of standard environment variables.
 
-Controller creates necessary `SharedIndexInformer`s provided by `kubernetes/client-go` for listening and watching
+Controller creates necessary `SharedInformer`s provided by `kubernetes/client-go` for listening and watching
 resource changes. Controller updates this subscription information with Kubernetes API Server.
 
 Whenever, the Kubernetes Controller Manager gets events related to the subscribed resources, it pushes the events to
-`SharedIndexInformer`. This in-turn puts the events onto a rate-limiting queue for better handling of the events.
+`SharedInformer`. This in-turn puts the events onto a rate-limiting queue for better handling of the events.
 
 Controller picks the events from the queue and hands over the events to the appropriate handler after
 necessary filtering.

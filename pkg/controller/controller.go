@@ -78,7 +78,7 @@ type Controller struct {
 	logger       *zerolog.Logger
 	clientset    kubernetes.Interface
 	queue        workqueue.RateLimitingInterface
-	informer     cache.SharedIndexInformer
+	informer     cache.SharedInformer
 	eventHandler handlers.Handler
 }
 
@@ -86,7 +86,6 @@ func objName(obj interface{}) string {
 	return reflect.TypeOf(obj).Name()
 }
 
-// TODO: we don't need the informer to be indexed
 // Start prepares watchers and run their controllers, then waits for process termination signals
 func Start(conf *config.Config, eventHandler handlers.Handler) {
 	var kubeClient kubernetes.Interface
@@ -99,7 +98,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 
 	// User Configured Events
 	if conf.Resource.CoreEvent {
-		allCoreEventsInformer := cache.NewSharedIndexInformer(
+		allCoreEventsInformer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					options.FieldSelector = ""
@@ -112,7 +111,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&api_v1.Event{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		allCoreEventsController := newResourceController(kubeClient, eventHandler, allCoreEventsInformer, objName(api_v1.Event{}), V1)
@@ -123,7 +121,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.Event {
-		allEventsInformer := cache.NewSharedIndexInformer(
+		allEventsInformer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					options.FieldSelector = ""
@@ -136,7 +134,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&events_v1.Event{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		allEventsController := newResourceController(kubeClient, eventHandler, allEventsInformer, objName(events_v1.Event{}), EVENTS_V1)
@@ -147,7 +144,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.Pod {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.CoreV1().Pods(conf.Namespace).List(context.Background(), options)
@@ -158,7 +155,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&api_v1.Pod{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(api_v1.Pod{}), V1)
@@ -169,7 +165,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.HPA {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.AutoscalingV1().HorizontalPodAutoscalers(conf.Namespace).List(context.Background(), options)
@@ -180,7 +176,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&autoscaling_v1.HorizontalPodAutoscaler{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(autoscaling_v1.HorizontalPodAutoscaler{}), AUTOSCALING_V1)
@@ -192,7 +187,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.DaemonSet {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.AppsV1().DaemonSets(conf.Namespace).List(context.Background(), options)
@@ -203,7 +198,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&apps_v1.DaemonSet{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(apps_v1.DaemonSet{}), APPS_V1)
@@ -214,7 +208,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.StatefulSet {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.AppsV1().StatefulSets(conf.Namespace).List(context.Background(), options)
@@ -225,7 +219,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&apps_v1.StatefulSet{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(apps_v1.StatefulSet{}), APPS_V1)
@@ -236,7 +229,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.ReplicaSet {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.AppsV1().ReplicaSets(conf.Namespace).List(context.Background(), options)
@@ -247,7 +240,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&apps_v1.ReplicaSet{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(apps_v1.ReplicaSet{}), APPS_V1)
@@ -258,7 +250,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.Services {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.CoreV1().Services(conf.Namespace).List(context.Background(), options)
@@ -269,7 +261,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&api_v1.Service{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(api_v1.Service{}), V1)
@@ -280,7 +271,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.Deployment {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.AppsV1().Deployments(conf.Namespace).List(context.Background(), options)
@@ -291,7 +282,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&apps_v1.Deployment{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(apps_v1.Deployment{}), APPS_V1)
@@ -302,7 +292,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.Namespace {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.CoreV1().Namespaces().List(context.Background(), options)
@@ -313,7 +303,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&api_v1.Namespace{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(api_v1.Namespace{}), V1)
@@ -324,7 +313,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.ReplicationController {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.CoreV1().ReplicationControllers(conf.Namespace).List(context.Background(), options)
@@ -335,7 +324,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&api_v1.ReplicationController{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(api_v1.ReplicationController{}), V1)
@@ -346,7 +334,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.Job {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.BatchV1().Jobs(conf.Namespace).List(context.Background(), options)
@@ -357,7 +345,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&batch_v1.Job{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(batch_v1.Job{}), BATCH_V1)
@@ -368,7 +355,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.Node {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.CoreV1().Nodes().List(context.Background(), options)
@@ -379,7 +366,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&api_v1.Node{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(api_v1.Node{}), V1)
@@ -390,7 +376,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.ServiceAccount {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.CoreV1().ServiceAccounts(conf.Namespace).List(context.Background(), options)
@@ -401,7 +387,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&api_v1.ServiceAccount{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(api_v1.ServiceAccount{}), V1)
@@ -412,7 +397,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.ClusterRole {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.RbacV1().ClusterRoles().List(context.Background(), options)
@@ -423,7 +408,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&rbac_v1.ClusterRole{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(rbac_v1.ClusterRole{}), RBAC_V1)
@@ -434,7 +418,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.ClusterRoleBinding {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.RbacV1().ClusterRoleBindings().List(context.Background(), options)
@@ -445,7 +429,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&rbac_v1.ClusterRoleBinding{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(rbac_v1.ClusterRoleBinding{}), RBAC_V1)
@@ -456,7 +439,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.PersistentVolume {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.CoreV1().PersistentVolumes().List(context.Background(), options)
@@ -467,7 +450,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&api_v1.PersistentVolume{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(api_v1.PersistentVolume{}), V1)
@@ -478,7 +460,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.Secret {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.CoreV1().Secrets(conf.Namespace).List(context.Background(), options)
@@ -489,7 +471,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&api_v1.Secret{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(api_v1.Secret{}), V1)
@@ -500,7 +481,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.ConfigMap {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.CoreV1().ConfigMaps(conf.Namespace).List(context.Background(), options)
@@ -511,7 +492,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&api_v1.ConfigMap{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(api_v1.ConfigMap{}), V1)
@@ -522,7 +502,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	if conf.Resource.Ingress {
-		informer := cache.NewSharedIndexInformer(
+		informer := cache.NewSharedInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					return kubeClient.NetworkingV1().Ingresses(conf.Namespace).List(context.Background(), options)
@@ -533,7 +513,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&networking_v1.Ingress{},
 			0, //Skip resync
-			cache.Indexers{},
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, objName(networking_v1.Ingress{}), NETWORKING_V1)
@@ -549,7 +528,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	<-sigterm
 }
 
-func newResourceController(client kubernetes.Interface, eventHandler handlers.Handler, informer cache.SharedIndexInformer, resourceType string, apiVersion string) *Controller {
+func newResourceController(client kubernetes.Interface, eventHandler handlers.Handler, informer cache.SharedInformer, resourceType string, apiVersion string) *Controller {
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 	var newEvent Event
 	var err error
@@ -685,7 +664,7 @@ func (c *Controller) processNextItem() bool {
 
 func (c *Controller) processItem(newEvent Event) error {
 	// NOTE that obj will be nil on deletes!
-	obj, _, err := c.informer.GetIndexer().GetByKey(newEvent.key)
+	obj, _, err := c.informer.GetStore().GetByKey(newEvent.key)
 
 	if err != nil {
 		return fmt.Errorf("Error fetching object with key %s from store: %v", newEvent.key, err)
